@@ -1,6 +1,6 @@
 from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as LangchainPinecone
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 import os
 
 def init_pinecone(api_key, index_name):
@@ -25,6 +25,9 @@ def init_vector_store(pinecone_index):
     """
     Initialize the LangChain vector store with Pinecone.
     """
-    embedding_model = OpenAIEmbeddings()
+    model_name="all-mpnet-base-v2"
+    embedding_model = HuggingFaceEmbeddings(model_name=model_name)
+    #embeddings = model.embed_documents(texts)
+    #embedding_model = OpenAIEmbeddings()
     vector_store = LangchainPinecone(pinecone_index, embedding_model.embed_query, "text")
     return vector_store, embedding_model
