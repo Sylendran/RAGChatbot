@@ -116,7 +116,7 @@ if st.session_state['uploaded_files']:
 
 
 # RAG-Based Answering
-def rag_based_answer(query, threshold=0.75):
+def rag_based_answer(query, threshold=0.10):
     query_embedding = embedding_model.embed_query(query)
 
    # Search Pinecone for top documents and their similarity scores
