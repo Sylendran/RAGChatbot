@@ -1,6 +1,6 @@
 import openai
 import streamlit as st
-from utils.pdf_utils import extract_text_from_pdf  # Import PDF utility function
+from utils.pdf_utils import extract_text_from_pdf, split_text  # Import PDF utility function
 from utils.huggingface_utils import upload_to_huggingface 
 from utils.embedding_utils import create_embeddings
 from utils.huggingface_download_embed_utils import download_and_embed_pdfs_from_huggingface
@@ -35,6 +35,7 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 pinecone_index = init_pinecone(pinecone_api_key, pinecone_index_name)
 vector_store, embedding_model = init_vector_store(pinecone_index)
 
+
 # Download and embed PDFs from Hugging Face repo when app starts
 if 'data_loaded' not in st.session_state:
     st.write("Downloading and embedding files from Hugging Face repo...")
@@ -52,9 +53,13 @@ if 'data_loaded' not in st.session_state:
         pdf_text = extract_text_from_pdf(st.session_state['uploaded_files'][file_name])
 
         # Add the text and metadata to Pinecone (text as the document, and metadata as file name)
-        vector_store.add_texts(texts=[pdf_text], metadatas=[{"file_name": file_name}])
+        #vector_store.add_texts(texts = [pdf_text], metadatas=[{"file_name": file_name}])
+        # Split the text into smaller chunks to avoid exceeding Pinecone's size limit
+        text_chunks = split_text(pdf_text, chunk_size=1000)  # Adjust chunk size based on your needs
 
-        #st.write(f"Added {file_name} to Pinecone index.")
+        #  Add each chunk to Pinecone with file metadata (e.g., file_name + chunk index)
+        for idx, chunk in enumerate(text_chunks):
+            vector_store.add_texts(texts=[chunk], metadatas=[{"file_name": f"{file_name}_part_{idx}"}])
 
     st.session_state['data_loaded'] = True
     st.sidebar.write("Downloaded and embedded PDFs from Hugging Face repository.")
@@ -83,7 +88,13 @@ if uploaded_files:
             st.session_state['embeddings'][file.name] = embeddings
 
             # Add the new embeddings to Pinecone
-            vector_store.add_texts(texts = [pdf_text], metadatas=[{"file_name": file.name}])
+            #vector_store.add_texts(texts = [pdf_text], metadatas=[{"file_name": file.name}])
+            # Split the text into smaller chunks to avoid exceeding Pinecone's size limit
+            text_chunks = split_text(pdf_text, chunk_size=1000)  # Adjust chunk size based on your needs
+
+            # Add each chunk to Pinecone with file metadata (e.g., file_name + chunk index)
+            for idx, chunk in enumerate(text_chunks):
+                vector_store.add_texts(texts=[chunk], metadatas=[{"file_name": f"{file_name}_part_{idx}"}])
 
             # Upload to Hugging Face
             upload_to_huggingface(file, repo_id, hf_token)
