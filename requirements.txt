@@ -6,3 +6,4 @@ pinecone-client
 langchain
 requests
 langchain-community
+sentence-transformers
