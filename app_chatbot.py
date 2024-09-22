@@ -116,19 +116,32 @@ if st.session_state['uploaded_files']:
 
 
 # RAG-Based Answering
-def rag_based_answer(query):
+def rag_based_answer(query, threshold=0.75):
     query_embedding = embedding_model.embed_query(query)
 
-    # Search Pinecone for top documents
-    docs = vector_store.similarity_search(query, k=5)  # Updated: use `k` to specify top results
-    #st.write(f"Retrieved documents: {docs}")
+   # Search Pinecone for top documents and their similarity scores
+    docs_and_scores = vector_store.similarity_search_with_score(query, k=5)  # Retrieve scores as well
+    #st.write(f"Retrieved documents and scores: {docs_and_scores}")
+    
+    # Check if we got any results
+    if not docs_and_scores:
+        st.write("No relevant documents found. Falling back to GPT search.")
+        return open_search_answer_stream(query)
+    
+    # Unpack the top document and its score
+    top_doc, top_score = docs_and_scores[0]  # Unpack only the first result (doc, score)
+    
+    # If the top score is below the threshold, fall back to open search
+    if top_score < threshold:
+        st.write(f"Top similarity score ({top_score}) below threshold ({threshold}). Falling back to GPT search.")
+        return open_search_answer_stream(query)
     
     # Extract the page_content from the document objects
-    retrieved_texts = [doc.page_content for doc in docs]  # Don't unpack score
+    retrieved_texts = [doc.page_content for doc, score in docs_and_scores]  # Don't unpack score
     
-    if not retrieved_texts:
-        st.write("No relevant high-score documents found. Falling back to GPT search.")
-        return open_search_answer_stream(query)
+    #if not retrieved_texts:
+    #    st.write("No relevant high-score documents found. Falling back to GPT search.")
+    #    return open_search_answer_stream(query)
 
     document_context = "\n\n".join(retrieved_texts)
 
