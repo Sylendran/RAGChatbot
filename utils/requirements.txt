@@ -1,0 +1,6 @@
+streamlit
+openai
+PyPDF2
+huggingface_hub
+pinecone-client
+langchain
