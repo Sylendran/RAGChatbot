@@ -13,3 +13,10 @@ def extract_text_from_pdf(file):
         if not text:
             text = "No extractable text"  # Log or handle this scenario
     return text
+
+# Add a utility function to split the text into chunks
+def split_text(text, chunk_size=500):
+    """
+    Split text into chunks of a specified size.
+    """
+    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
