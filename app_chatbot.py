@@ -83,7 +83,7 @@ if uploaded_files:
             st.session_state['embeddings'][file.name] = embeddings
 
             # Add the new embeddings to Pinecone
-            vector_store.add_texts([pdf_text], metadatas=[{"file_name": file.name}])
+            vector_store.add_texts(texts = [pdf_text], metadatas=[{"file_name": file.name}])
 
             # Upload to Hugging Face
             upload_to_huggingface(file, repo_id, hf_token)
