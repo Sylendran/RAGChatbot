@@ -94,7 +94,7 @@ if uploaded_files:
 
             # Add each chunk to Pinecone with file metadata (e.g., file_name + chunk index)
             for idx, chunk in enumerate(text_chunks):
-                vector_store.add_texts(texts=[chunk], metadatas=[{"file_name": f"{file_name}_part_{idx}"}])
+                vector_store.add_texts(texts=[chunk], metadatas=[{"file_name": f"{file.name}_part_{idx}"}])
 
             # Upload to Hugging Face
             upload_to_huggingface(file, repo_id, hf_token)
